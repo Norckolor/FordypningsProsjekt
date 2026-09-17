@@ -1,8 +1,8 @@
 function f = f(x)
-    
-    f_lower(x) = inv(M(x(1:2))*(-C(x(1:2),x(3:4))*q(3:4) - G(x(1:2))));
+    n = 2;
+    f_lower = M(1:n)\( -C( x(1:n),x(n+1:end)) - G(x(1:n)) );
 
-    f = [x(3);
-        x(4);
+    
+    f = [x(1:n)'
         f_lower];
 end
