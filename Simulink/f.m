@@ -11,8 +11,7 @@ function [f] = f(x)
     
     %%% Intrinsic System values
     n = 2;
-    
-    
+        
     %%% calculated values
     a = J1 + J2 + L1^4/4*(m1 + 4*m2) + L2^2*m2/4;
     b = L1*L2*m2;
