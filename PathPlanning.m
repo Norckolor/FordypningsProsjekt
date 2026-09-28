@@ -1,77 +1,47 @@
-%% path planning based on Matthew Peter Kelly
-% Addapted to this system
-clear; clc; close all;
-addpath OptimTraj-master\
-addpath Robot_2DOF\
+function f = PathPlanning(p,dp,ddp)
 
-%% system Parameters
-parm.J1 = 2;
-parm.J2 = 2;
-parm.L1 = 2;
-parm.L2 = 2;
-parm.m1 = 2;
-parm.m2 = 2;
-parm.g = 9.81;
+    if ( size(p,2) ~= size(dp,2) )
+        error('Different number of points in p to dp')
+    end
 
+    if ( size(p,2) ~= size(ddp,2) )
+        error('Different number of points in p to ddp')
+    end
 
-%% Path parameters
+    x = p(1,:);
+    dx = dp(1,:);
+    ddx = ddp(1,:);
+    xp = [x;dx;ddx];
 
-p_init = [0,4,0];
-q_init = InvKinematics(p_init,parm)';
-dq_init = [0,0]';
-x_init = [q_init;dq_init];
+    y = p(2,:);
+    dy = dp(2,:);
+    ddy = ddp(2,:);
+    yp = [y;dy;ddy];
 
-p_final = [2,2,0]; 
-q_final = InvKinematics(p_final,parm)';
-dq_final = [0,0]';
-x_final = [q_final;dq_final];
+    N = size(p,2);
 
-duration = 10;
-maxTorque = 100;
+    A = [1 0 0 0 0 0;
+         0 1 0 0 0 0;
+         0 0 1 0 0 0;
+         1 1 1 1 1 1;
+         0 1 2 3 4 5;
+         0 0 2 6 12 20;];
+    
+    ax = zeros(6,N);
+    vx = [xp;circshift(xp,[0,-1])];
 
-%% Optimization paramters
-problem.func.dynamics = @(t,x,u) f(x,parm) + g(x,u,parm);
-problem.func.pathObj = @(t,x,u)( u.^2 + x(3:4,:).^2 );  %torque-squared cost function
+    ay = zeros(6,N);
+    vy = [yp;circshift(yp,[0,-1])];
 
-problem.bounds.initialTime.low = 0;
-problem.bounds.initialTime.upp = 0;
-problem.bounds.finalTime.low = duration;
-problem.bounds.finalTime.upp = duration;
+    for k = 1:N
+        ax(:,k) = A\vx(:,k);
+        ay(:,k) = A\vy(:,k);
+    end
+    
+    fx = @(s) [1, s, s^2, s^3, s^4, s^5] * ax;
+    fy = @(s) [1, s, s^2, s^3, s^4, s^5] * ay;
 
-problem.bounds.initialState.low = x_init;
-problem.bounds.initialState.upp = x_init;
-problem.bounds.finalState.low = x_final;
-problem.bounds.finalState.upp = x_final;
+    
 
-problem.bounds.state.low = [-pi;-pi;-10;-10];
-problem.bounds.state.upp = [pi;pi;100;100];
-
-problem.bounds.control.low = -[maxTorque;maxTorque];
-problem.bounds.control.upp = [maxTorque;maxTorque];
-
-%init guess:
-problem.guess.time = [0,duration];
-problem.guess.state = [problem.bounds.initialState.low, problem.bounds.finalState.low];
-problem.guess.control = [[0;0],[0;0]];
-
-%solver options
-problem.options.nlpOpt = optimset(...
-    'Display','iter',...
-    'MaxFunEvals',1e5);
-problem.options.method = 'rungeKutta';
-
-
-%% Solve
-
-soln = optimTraj(problem);
-
-
-%%
-q_sol = soln.grid.state;
-time_sol = soln.grid.time;
-pos_sol = zeros(3,length(time_sol));
-for k = 1:length(time_sol)
-    pos_sol(:,k) = ForwardKinematics(q_sol(:,k),parm);
+    f = @(s) [fx(s);fy(s)];
 end
-
-plot(pos_sol(1,:),pos_sol(2,:))
