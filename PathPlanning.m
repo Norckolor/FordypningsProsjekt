@@ -6,9 +6,12 @@ function f = PathPlanning(p,dp,ddp)
     % To ensure continuity we also need to specify the first and second
     % derivitive at each of the points
 
-    % The return function as in a matrix format:
+    % The return function as in a cell format:
     % f = [fx1 fx2 fx3...;
-    %      fy1 fy2 fy3...];
+    %      fy1 fy2 fy3...
+    %      .    .   .   
+    %      .    .   .
+    %      .    .   .];
 
 
     % Error in input arguments:
@@ -19,20 +22,19 @@ function f = PathPlanning(p,dp,ddp)
     if ( size(p,2) ~= size(ddp,2) )
         error('Different number of points in p to ddp')
     end
-
-    %extract x values:
-    x = p(1,:);
-    dx = dp(1,:);
-    ddx = ddp(1,:);
-    xp = [x;dx;ddx];
-
-    %extract y values:
-    y = p(2,:);
-    dy = dp(2,:);
-    ddy = ddp(2,:);
-    yp = [y;dy;ddy];
     
     N = size(p,2); %number of points
+    n = size(p,1); %number of DOFS
+    
+    vx = zeros(6,N,n);
+    for j = 1:n 
+        x = p(j,:);
+        dx = dp(j,:);
+        ddx = ddp(j,:);
+        xp = [x;dx;ddx];
+
+        vx(:,:,j) = [xp;circshift(xp,[0,-1])];
+    end
 
     % A = [1 0 0 0 0 0;
     %      0 1 0 0 0 0;
@@ -49,22 +51,19 @@ function f = PathPlanning(p,dp,ddp)
           15    8   3   -15 7   -1 
           -6    -3  -1  6   -3  0.5];
     
-    vx = [xp;circshift(xp,[0,-1])];
-    ax = zeros(6,N);
-    
-    vy = [yp;circshift(yp,[0,-1])];
-    ay = zeros(6,N);
-    
-    
-    for k = 1:N
-        ax(:,k) = A_*vx(:,k);
-        ay(:,k) = A_*vy(:,k);
+
+    ax = zeros(6,N,n);
+    f = cell(n,1);
+
+    for j = 1:n
+        for k = 1:N 
+            ax(:,k,j) = A_*vx(:,k,j);
+            % ay(:,k) = A_*vx(:,k,j);
+        end
+        f{j} = @(s) [1, s, s^2, s^3, s^4, s^5] * ax(:,:,j);
     end
     
-    fx = @(s) [1, s, s^2, s^3, s^4, s^5] * ax;
-    fy = @(s) [1, s, s^2, s^3, s^4, s^5] * ay;
-
-    
-
-    f = @(s) [fx(s);fy(s)];
+    % fx = @(s) [1, s, s^2, s^3, s^4, s^5] * ax;
+    % fy = @(s) [1, s, s^2, s^3, s^4, s^5] * ay;
+    % f = @(s) [fx(s);fy(s)];
 end
