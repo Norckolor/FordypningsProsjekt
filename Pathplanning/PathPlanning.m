@@ -1,4 +1,4 @@
-function f = PathPlanning(p,dp,ddp)
+function [f,df,ddf] = PathPlanning(p,dp,ddp)
     %%% PathPlanning %%%
 
     % To compute a path between points we use a 5th. order polynomial:
@@ -52,18 +52,18 @@ function f = PathPlanning(p,dp,ddp)
           -6    -3  -1  6   -3  0.5];
     
 
-    ax = zeros(6,N,n);
-    f = cell(n,1);
+    ax  = zeros(6,N,n);
+    f   = cell(n,1);
+    df  = cell(n,1);
+    ddf = cell(n,1);
 
     for j = 1:n
         for k = 1:N 
             ax(:,k,j) = A_*vx(:,k,j);
-            % ay(:,k) = A_*vx(:,k,j);
         end
         f{j} = @(s) [1, s, s^2, s^3, s^4, s^5] * ax(:,:,j);
+        df{j} = @(s) [1, 2*s, 3*s^2, 4*s^3, 5*s^4] * ax(2:end,:,j);
+        ddf{j} = @(s) [2, 6*s, 12*s^2, 20*s^3] * ax(3:end,:,j);
+        
     end
-    
-    % fx = @(s) [1, s, s^2, s^3, s^4, s^5] * ax;
-    % fy = @(s) [1, s, s^2, s^3, s^4, s^5] * ay;
-    % f = @(s) [fx(s);fy(s)];
 end
