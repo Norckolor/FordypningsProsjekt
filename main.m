@@ -1,6 +1,6 @@
 %% add Paths:
-addpath Robot_2DOF\
-addpath Pathplanning\
+addpath Robot_2DOF
+addpath Pathplanning
 
 
 %% set system paramters:
