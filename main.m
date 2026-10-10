@@ -1,3 +1,4 @@
+clc;clear;
 %% add Paths:
 addpath Robot_2DOF
 addpath Pathplanning
