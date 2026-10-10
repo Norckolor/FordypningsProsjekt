@@ -1,4 +1,4 @@
-function [f,df,ddf] = PathPlanning(p,dp,ddp)
+function [h,dh,ddh] = PathPlanning(p,dp,ddp)
     %%% PathPlanning %%%
 
     % To compute a path between points we use a 5th. order polynomial:
@@ -23,17 +23,17 @@ function [f,df,ddf] = PathPlanning(p,dp,ddp)
         error('Different number of points in p to ddp')
     end
     
-    N = size(p,2); %number of points
-    n = size(p,1); %number of DOFS
+    N = size(p,2); %number of points (index j)
+    n = size(p,1); %number of DOFS  (index i)
     
     vx = zeros(6,N,n);
-    for j = 1:n 
-        x = p(j,:);
-        dx = dp(j,:);
-        ddx = ddp(j,:);
+    for i = 1:n 
+        x = p(i,:);
+        dx = dp(i,:);
+        ddx = ddp(i,:);
         xp = [x;dx;ddx];
 
-        vx(:,:,j) = [xp;circshift(xp,[0,-1])];
+        vx(:,:,i) = [xp;circshift(xp,[0,-1])];
     end
 
     % A = [1 0 0 0 0 0;
@@ -53,17 +53,18 @@ function [f,df,ddf] = PathPlanning(p,dp,ddp)
     
 
     ax  = zeros(6,N,n);
-    f   = cell(n,1);
-    df  = cell(n,1);
-    ddf = cell(n,1);
+    h   = cell(n,N);
+    dh  = cell(n,N);
+    ddh = cell(n,N);
 
-    for j = 1:n
-        for k = 1:N 
-            ax(:,k,j) = A_*vx(:,k,j);
-        end
-        f{j} = @(s) [1, s, s^2, s^3, s^4, s^5] * ax(:,:,j);
-        df{j} = @(s) [1, 2*s, 3*s^2, 4*s^3, 5*s^4] * ax(2:end,:,j);
-        ddf{j} = @(s) [2, 6*s, 12*s^2, 20*s^3] * ax(3:end,:,j);
+    for i = 1:n
+        for j = 1:N 
         
+        ax(:,i) = A_*vx(:,j,i);
+        
+        h{i,j} = @(s) [1, s, s^2, s^3, s^4, s^5] * ax(:,i);
+        dh{i,j} = @(s) [1, 2*s, 3*s^2, 4*s^3, 5*s^4] * ax(2:end,i);
+        ddh{i,j} = @(s) [2, 6*s, 12*s^2, 20*s^3] * ax(3:end,i);
+        end
     end
 end

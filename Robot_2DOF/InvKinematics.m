@@ -1,6 +1,6 @@
 function [q] = InvKinematics(p,parms)
     %returns the angle of the actuators(q1,q2)
-
+    q = zeros(2,1);
     L1 = parms.L1;
     L2 = parms.L2;
     x = p(1);
