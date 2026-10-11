@@ -6,5 +6,5 @@ function [dqdt] = InvVelocityKinematics(q,v,parms)
     dpdq = [ -L1*sin(q(1)) - L2*sin( q(1)+q(2) ), -L2*sin( q(1)+q(2) );
              L1*cos(q(1)) + L2*cos( q(1)+q(2) ), L2*cos( q(1)+q(2) );];
     
-    dqdt = inv(dpdq)*v(1:2);
+    dqdt = dpdq\v(1:2);
 end

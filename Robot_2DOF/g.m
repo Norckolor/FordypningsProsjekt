@@ -1,4 +1,4 @@
-function g = g(x,u,parms)
+function g = g(x,parms)
 
     % parameters: 
     J1 = parms.J1;
@@ -24,7 +24,7 @@ function g = g(x,u,parms)
 
     g_lower = inv( M(x(1:n)) );
     
-    g(:,k) = [g_upper;g_lower]*u;
+    g = [g_upper;g_lower];
 
 
 end

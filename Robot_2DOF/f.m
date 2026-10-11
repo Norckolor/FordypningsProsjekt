@@ -30,5 +30,5 @@ function [f] = f(x,parms)
     
     f_lower = M(x(1:n)) \ ( -C( x(1:n),x(n+1:end) )*x(n+1:end) - G(x(1:n)) );
     
-    f = [x(1:n,k);f_lower];
+    f = [x(n+1:end);f_lower];
 end
