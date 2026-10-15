@@ -1,34 +1,19 @@
 function [f] = f(x,parms)
-
-    % parameters: 
-    J1 = parms.J1;
-    J2 = parms.J2;
-    L1 = parms.L1;
-    L2 = parms.L2;
-    m1 = parms.m1;
-    m2 = parms.m2;
-    g = parms.g;
-    
     % Intrinsic System values
     n = 2;
-        
-    % calculated values
-    a = J1 + J2 + L1^4/4*(m1 + 4*m2) + L2^2*m2/4;
-    b = L1*L2*m2;
-    c = J2 + L2^2/4*m2;
-    
+    q = x(1:n);
+    dq = x(n+1:2*n);
+
+   
     % functions
-    M = @(q) [a+b*cos(q(2)),    c+b/2*cos(q(2));
-              c+b/2*cos(q(2)),  c];
+    M_ = M(q,parms);
     
-    C = @(q,dq) [0,                         -b*(dq(1)+dq(2)/2)*sin(q(2));
-                 b*(dq(1)-dq(2)/2)*sin(q(2)), 0];
+    C_ = C(q,dq,parms);
     
-    G = @(q) [g*m2*( L2/2*cos( q(1)+q(2) ) + L1*cos( q(1) ) )+L1*g*m1*cos(q(2));
-              L2/2*m2*g*cos( q(1)+q(2) )];
+    G_ = G(q,parms);
     
     
-    f_lower = M(x(1:n)) \ ( -C( x(1:n),x(n+1:end) )*x(n+1:end) - G(x(1:n)) );
+    f_lower = M_ \ ( -C_*x(n+1:2*n) - G_ );
     
-    f = [x(n+1:end);f_lower];
+    f = [dq;f_lower];
 end

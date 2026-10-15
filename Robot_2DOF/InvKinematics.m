@@ -8,6 +8,8 @@ function [q] = InvKinematics(p,parms)
     z = p(3);
     L = sqrt(x^2 + y^2 + z^2);
 
-    q(2) = acos( (x^2 + y^2 - L1^2 - L2^2)/(2*L1*L2) );
-    q(1) = atan2(y,x) - asin( (L2*sin( q(2) ))/L );
+    q2 = acos( (x^2 + y^2 - L1^2 - L2^2)/(2*L1*L2) );
+    q1 = atan2(y,x) - asin( (L2*sin( q2 ))/L );
+    q(2) = mod(q2,2*pi);
+    q(1) = mod(q1,2*pi);
 end
