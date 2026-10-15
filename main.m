@@ -32,48 +32,48 @@ ddp = [1,1;1,1;1,1];
 [h,dh,ddh] = PathPlanning(p,dp,ddp);
 
 %% Proof the system works (if i get the implementation right)
-s = 0:0.01:1;
-p = zeros(3,length(s));
-
-q1 = zeros(N,length(s));
-q2 = zeros(N,length(s));
-figure Name 'statespace'
-hold on
-for j = 1:N
-    h_1 = h{1,j};
-    h_2 = h{2,j};
-    plot(q_r(1,j),q_r(2,j),'h')
-    for k = 1:length(s)
-        % point(:,k) = ForwardKinematics(h_(s(k)),parms);
-        q1(j,k) = h_1(s(k));
-        q2(j,k) = h_2(s(k));
-    end
-    plot(q1(j,:),q2(j,:))
-
-end
-hold off
-
-figure Name 'xyz'
-x = zeros(N,length(s));
-y = zeros(N,length(s));
-z = zeros(N,length(s));
-hold on
-grid on
-xlim([-2,2])
-ylim([-2,2])
-for j = 1:N
-    for k = 1:length(s)
-        xyz = ForwardKinematics([q1(j,k),q2(j,k)],parms);
-        x(j,k) = xyz(1);
-        y(j,k) = xyz(2);
-        z(j,k) = xyz(3);
-
-
-    end
-   plot3(x(j,1),y(j,1),z(j,1),'h')
-   plot3(x(j,:),y(j,:),z(j,:),'LineWidth',2)
-end
-hold off
+% s = 0:0.01:1;
+% p = zeros(3,length(s));
+% 
+% q1 = zeros(N,length(s));
+% q2 = zeros(N,length(s));
+% figure Name 'statespace'
+% hold on
+% for j = 1:N
+%     h_1 = h{1,j};
+%     h_2 = h{2,j};
+%     plot(q_r(1,j),q_r(2,j),'h')
+%     for k = 1:length(s)
+%         % point(:,k) = ForwardKinematics(h_(s(k)),parms);
+%         q1(j,k) = h_1(s(k));
+%         q2(j,k) = h_2(s(k));
+%     end
+%     plot(q1(j,:),q2(j,:))
+% 
+% end
+% hold off
+% 
+% figure Name 'xyz'
+% x = zeros(N,length(s));
+% y = zeros(N,length(s));
+% z = zeros(N,length(s));
+% hold on
+% grid on
+% xlim([-2,2])
+% ylim([-2,2])
+% for j = 1:N
+%     for k = 1:length(s)
+%         xyz = ForwardKinematics([q1(j,k),q2(j,k)],parms);
+%         x(j,k) = xyz(1);
+%         y(j,k) = xyz(2);
+%         z(j,k) = xyz(3);
+% 
+% 
+%     end
+%    plot3(x(j,1),y(j,1),z(j,1),'h')
+%    plot3(x(j,:),y(j,:),z(j,:),'LineWidth',2)
+% end
+% hold off
 %% simulate:
 
 
