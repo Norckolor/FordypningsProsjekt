@@ -9,10 +9,10 @@ function [G] = G(q,parms)
     gravity  = parms.g;
 
     % calculated values
-    a = J1 + J2 + L1^4/4*(m1 + 4*m2) + L2^2*m2/4;
+    a = J1 + J2 + L1^2/4*(m1 + 4*m2) + L2^2*m2/4;
     b = L1*L2*m2;
     c = J2 + L2^2/4*m2;
 
-    G = [gravity*m2*( L2/2*cos( q(1)+q(2) ) + L1*cos( q(1) ) )+L1*gravity*m1*cos(q(2));
+    G = [gravity*m2*( L2/2*cos( q(1)+q(2) ) + L1*cos( q(1) ) ) + L1*gravity*m1*cos(q(2));
           L2/2*m2*gravity*cos( q(1)+q(2) )];
 end

@@ -1,4 +1,4 @@
-function [f] = f(x,parms)
+function [f] = f(x,u,parms)
     % Intrinsic System values
     n = 2;
     q = x(1:n);
@@ -7,13 +7,11 @@ function [f] = f(x,parms)
    
     % functions
     M_ = M(q,parms);
-    
     C_ = C(q,dq,parms);
-    
     G_ = G(q,parms);
     
     
-    f_lower = M_ \ ( -C_*x(n+1:2*n) - G_ );
+    f_lower = M_ \ ( u - C_*dq - G_ );
     
     f = [dq;f_lower];
 end

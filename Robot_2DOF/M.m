@@ -9,9 +9,9 @@ function [M] = M(q,parms)
     grav  = parms.g;
 
     % calculated values
-    a = J1 + J2 + L1^4/4*(m1 + 4*m2) + L2^2*m2/4;
+    a = J1 + J2 + (m1 + 4*m2)*L1^2/4 + L2^2*m2/4;
     b = L1*L2*m2;
-    c = J2 + L2^2/4*m2;
+    c = J2 + L2^2*m2/4;
 
     M = [a+b*cos(q(2)),    c+b/2*cos(q(2));
          c+b/2*cos(q(2)),  c];
