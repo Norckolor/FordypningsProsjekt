@@ -21,15 +21,19 @@ c = [cx;cy;cz];
 n = 2;
 N = size(c,2);
 
-q_r = zeros(n,N);
+qr = zeros(n,N);
 for j = 1:N
-    q_r(:,j) = InvKinematics(c(:,j),parms);
+    qr(:,j) = InvKinematics(c(:,j),parms);
 end
-p = q_r;
-dp = [0,1;1,0;0,0];
-ddp = [1,1;1,1;1,1];
+qr;
 
-[h,dh,ddh] = PathPlanning(p,dp,ddp);
+dqr = [ 1, -1;
+        1, 1];
+
+ddqr = [1, 1;
+        1, 1];
+
+[h,dh,ddh] = PathPlanning(qr,dqr,ddqr);
 
 %% Proof the system works (if i get the implementation right)
 % s = 0:0.01:1;
@@ -39,10 +43,11 @@ ddp = [1,1;1,1;1,1];
 % q2 = zeros(N,length(s));
 % figure Name 'statespace'
 % hold on
+% 
 % for j = 1:N
 %     h_1 = h{1,j};
 %     h_2 = h{2,j};
-%     plot(q_r(1,j),q_r(2,j),'h')
+%     plot(qr(1,j),qr(2,j),'h')
 %     for k = 1:length(s)
 %         % point(:,k) = ForwardKinematics(h_(s(k)),parms);
 %         q1(j,k) = h_1(s(k));
@@ -51,6 +56,7 @@ ddp = [1,1;1,1;1,1];
 %     plot(q1(j,:),q2(j,:))
 % 
 % end
+% legend
 % hold off
 % 
 % figure Name 'xyz'
@@ -73,6 +79,7 @@ ddp = [1,1;1,1;1,1];
 %    plot3(x(j,1),y(j,1),z(j,1),'h')
 %    plot3(x(j,:),y(j,:),z(j,:),'LineWidth',2)
 % end
+% legend
 % hold off
 %% simulate:
 
@@ -80,8 +87,10 @@ ddp = [1,1;1,1;1,1];
 % main_sim
 dt = 0.01; 
 q0 = InvKinematics(c(:,1),parms);
-x0 = [q_r(:,1);0;1;0];
-t = 0:dt:1;
+x0 = [qr(:,1);
+      dqr(:,1);
+        0];
+t = 0:dt:4;
 [~,y] = ode45(@(t,x) systemDynamics(t,x,h,dh,ddh,parms),t,x0);
 xstart  = y(1,:)
 xend    = y(end,:)
@@ -102,28 +111,13 @@ function dxdt = systemDynamics(t,x,h,dh,ddh,parms)
     dq = x(n+1:end-1);
     s = x(end);
     
-    % parameters: 
-    J1 = parms.J1;
-    J2 = parms.J2;
-    L1 = parms.L1;
-    L2 = parms.L2;
-    m1 = parms.m1;
-    m2 = parms.m2;
-    grav  = parms.g;
-
     %% path shit
     rho = @(s) 1;
-    h_1 = h{1,1};
-    dh_1 = dh{1,1};
-    ddh_1 = ddh{1,1};
     
-    h_2 = h{2,1};
-    dh_2 = dh{2,1};
-    ddh_2 = ddh{2,1};
     
-    h_ = [h_1(s);h_2(s)];
-    dh_ = [dh_1(s);dh_2(s)];
-    ddh_ = [ddh_1(s);ddh_2(s)];
+    h_ = PathCoordinating(s,h);
+    dh_ = PathCoordinating(s,dh);
+    ddh_ = PathCoordinating(s,ddh);
 
     q_r = h_;
     dq_r = dh_*rho(s);
