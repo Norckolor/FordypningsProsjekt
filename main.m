@@ -97,11 +97,26 @@ xend    = y(end,:)
 
 theta1 = y(:,1);              % joint 1
 theta2 = y(:,2);              % joint 2
-%                    % 60 fps visualisation
-% 
+
 animate2DOF(parms,theta1,theta2,dt, ...
             'Trace',true, ...
             'FigureName','2‑DOF Robot – sinusoid');
+
+figure name 'q1 - q1r'
+h_ = @(s) PathCoordinating(s,h);
+q = zeros(n,length(t));
+
+for i = 1:length(t)
+    q(:,i) = h_(y(i,5));
+    diff(i) = theta1(i) - q(1,i);
+end
+hold on
+grid on
+plot(t,diff,'Color','g');
+% plot(t,q(1,:),'color','b');
+legend
+hold off
+
 
 %% functions
 function dxdt = systemDynamics(t,x,h,dh,ddh,parms)
