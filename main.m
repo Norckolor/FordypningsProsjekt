@@ -14,24 +14,32 @@ parms.m2 = 2;
 parms.g = 9.81;
 
 %% Generate path:
-cx = [0     0.5];
-cy = [0.5   1];
-cz = [0     0];
-c = [cx;cy;cz];
-n = 2;
-N = size(c,2);
+%points:
+cx = [0    0.5   1   0.5];
+cy = [0.5     1   0.5  0];
+c = [cx;cy];
+
+% velocities at points: 
+vx = [0 1 0 -1];
+vy = [1 0 -1 0];
+v = [vx;vy];
+
+%accelerations at points:
+ax = [1 0 -1 0];
+ay = [0 -1 0 1];
+a = [ax;ay];
+
+n = 2; %number of DOFs
+N = size(c,2); %number of points
 
 qr = zeros(n,N);
+dqr = zeros(n,N);
+ddqr = zeros(n,N); 
 for j = 1:N
     qr(:,j) = InvKinematics(c(:,j),parms);
+    dqr(:,j) = InvVelocityKinematics(qr(:,j),v(:,j),parms);
+    ddqr(:,j) = InvAccelerationKinematics(qr(:,j),dqr(:,j),a(:,j),parms);
 end
-qr;
-
-dqr = [ 1, -1;
-        1, 1];
-
-ddqr = [1, 1;
-        1, 1];
 
 [h,dh,ddh] = PathPlanning(qr,dqr,ddqr);
 
@@ -90,22 +98,25 @@ q0 = InvKinematics(c(:,1),parms);
 x0 = [qr(:,1);
       dqr(:,1);
         0];
-t = 0:dt:4;
-[~,y] = ode45(@(t,x) systemDynamics(t,x,h,dh,ddh,parms),t,x0);
-xstart  = y(1,:)
-xend    = y(end,:)
+t = 0:dt:5;
+opt = odeset('RelTol',1e-5);
+[~,y] = ode45(@(t,x) systemDynamics(t,x,h,dh,ddh,parms),t,x0,opt);
 
+%% plots and animation
+%get values of interest
 theta1 = y(:,1);              % joint 1
 theta2 = y(:,2);              % joint 2
 
+%animate robot arm:
 animate2DOF(parms,theta1,theta2,dt, ...
             'Trace',true, ...
             'FigureName','2‑DOF Robot – sinusoid');
 
+%plot error:
 figure name 'q1 - q1r'
 h_ = @(s) PathCoordinating(s,h);
 q = zeros(n,length(t));
-
+diff = zeros(1,length(t));
 for i = 1:length(t)
     q(:,i) = h_(y(i,5));
     diff(i) = theta1(i) - q(1,i);
@@ -113,7 +124,6 @@ end
 hold on
 grid on
 plot(t,diff,'Color','g');
-% plot(t,q(1,:),'color','b');
 legend
 hold off
 
