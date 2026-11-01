@@ -140,7 +140,7 @@ end
 subplot(3,1,1);
 hold on
 grid on
-title('phase plane nominal q1')
+title('phase plane nominal q_1')
 plot(q(1,:),dq(1,:),LineWidth=1.5);
 xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(\dot{q}_1\)','Interpreter','latex',Rotation=0);
@@ -149,7 +149,7 @@ hold off
 subplot(3,1,2);
 hold on
 grid on
-title('phase plane nominal q2')
+title('phase plane nominal q_2')
 plot(q(2,:),dq(2,:),LineWidth=1.5);
 xlabel('\(q_2\)','Interpreter','latex');
 ylabel('\(\dot{q}_2\)','Interpreter','latex',Rotation=0);
@@ -158,7 +158,7 @@ hold off
 subplot(3,1,3);
 hold on
 grid on
-title('phase plane nominal q1 q2')
+title('orbit in q_1, q_2 space')
 plot(q(1,:),q(2,:),LineWidth=1.5);
 xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
