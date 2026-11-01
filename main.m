@@ -97,11 +97,11 @@ dt = 0.01;
 q0 = InvKinematics(c(:,1),parms);
 x0 = [qr(:,1);
       dqr(:,1);
-        0];
-t = 0:dt:5;
+        0]
+t = 0:dt:4;
 opt = odeset('RelTol',1e-5);
 [~,y] = ode45(@(t,x) systemDynamics(t,x,h,dh,ddh,parms),t,x0,opt);
-
+x_end = y(end,1:5)'
 %% plots and animation
 %get values of interest
 theta1 = y(:,1);              % joint 1
@@ -127,7 +127,33 @@ plot(t,diff,'Color','g');
 legend
 hold off
 
+figure name 'q dq'
+h_ = @(s) PathCoordinating(s,h);
+dh_ = @(s) PathCoordinating(s,dh);
+q = zeros(n,length(t));
+dq = zeros(n,length(t));
+for i = 1:length(t)
+    q(:,i) = h_(y(i,5));
+    dq(:,i) = dh_(y(i,5));
+end
 
+subplot(2,1,1);
+hold on
+grid on
+title('phase plane nominal q1')
+plot(q(1,:),dq(1,:),LineWidth=1.5);
+xlabel('\(q_1\)','Interpreter','latex');
+ylabel('\(\dot{q}_1\)','Interpreter','latex',Rotation=0);
+hold off
+
+subplot(2,1,2);
+hold on
+grid on
+title('phase plane nominal q2')
+plot(q(2,:),dq(2,:),LineWidth=1.5);
+xlabel('\(q_2\)','Interpreter','latex');
+ylabel('\(\dot{q}_2\)','Interpreter','latex',Rotation=0);
+hold off
 %% functions
 function dxdt = systemDynamics(t,x,h,dh,ddh,parms)
     %dxdt = f(x) + g(x)u

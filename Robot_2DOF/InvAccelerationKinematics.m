@@ -1,6 +1,5 @@
 function [ddqdtt] = InvAccelerationKinematics(q,dq,a,parms)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+
     L1 = parms.L1;
     L2 = parms.L2;
     q1 = q(1);
