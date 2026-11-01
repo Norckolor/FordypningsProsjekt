@@ -108,9 +108,9 @@ theta1 = y(:,1);              % joint 1
 theta2 = y(:,2);              % joint 2
 
 %animate robot arm:
-animate2DOF(parms,theta1,theta2,dt, ...
-            'Trace',true, ...
-            'FigureName','2‑DOF Robot – sinusoid');
+% animate2DOF(parms,theta1,theta2,dt, ...
+%             'Trace',true, ...
+%             'FigureName','2‑DOF Robot – sinusoid');
 
 %plot error:
 figure name 'q1 - q1r'
@@ -137,7 +137,7 @@ for i = 1:length(t)
     dq(:,i) = dh_(y(i,5));
 end
 
-subplot(2,1,1);
+subplot(3,1,1);
 hold on
 grid on
 title('phase plane nominal q1')
@@ -146,13 +146,22 @@ xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(\dot{q}_1\)','Interpreter','latex',Rotation=0);
 hold off
 
-subplot(2,1,2);
+subplot(3,1,2);
 hold on
 grid on
 title('phase plane nominal q2')
 plot(q(2,:),dq(2,:),LineWidth=1.5);
 xlabel('\(q_2\)','Interpreter','latex');
 ylabel('\(\dot{q}_2\)','Interpreter','latex',Rotation=0);
+hold off
+
+subplot(3,1,3);
+hold on
+grid on
+title('phase plane nominal q1 q2')
+plot(q(1,:),q(2,:),LineWidth=1.5);
+xlabel('\(q_1\)','Interpreter','latex');
+ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
 hold off
 %% functions
 function dxdt = systemDynamics(t,x,h,dh,ddh,parms)
