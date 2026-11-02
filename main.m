@@ -32,17 +32,22 @@ a = [ax;ay];
 n = 2; %number of DOFs
 N = size(c,2); %number of points
 
-qr = zeros(n,N);
-dqr = zeros(n,N);
-ddqr = zeros(n,N); 
+
+rho = @(s) 2; %ds/dt
+
+pr = zeros(n,N);
+dpr = zeros(n,N);
+ddpr = zeros(n,N); 
 for j = 1:N
-    qr(:,j) = InvKinematics(c(:,j),parms);
-    dqr(:,j) = InvVelocityKinematics(qr(:,j),v(:,j),parms);
-    ddqr(:,j) = InvAccelerationKinematics(qr(:,j),dqr(:,j),a(:,j),parms);
+    pr(:,j) = InvKinematics(c(:,j),parms);
+    dpr(:,j) = InvVelocityKinematics(pr(:,j),v(:,j),parms);
+    ddpr(:,j) = InvAccelerationKinematics(pr(:,j),dpr(:,j),a(:,j),parms);
 end
 
-[h,dh,ddh] = PathPlanning(qr,dqr,ddqr);
-
+%[h,dh,ddh] = PathPlanning(qr,dqr,ddqr);
+qr = @(s) [cos(s);sin(s)];
+dqr = @(s) [-sin(s);cos(s)]*rho(s);
+ddqr = @(s) [-cos(s);-sin(s)]*rho(s)^2 + [-sin(s);cos(s)]*0;
 %% Proof the system works (if i get the implementation right)
 % s = 0:0.01:1;
 % p = zeros(3,length(s));
@@ -91,35 +96,35 @@ end
 % hold off
 %% simulate:
 
-
 % main_sim
 dt = 0.01; 
 q0 = InvKinematics(c(:,1),parms);
-x0 =    [qr(:,1);
-        dqr(:,1);
-        0];
-t = 0:dt:4;
-opt = odeset('RelTol',1e-8);
-[~,y] = ode45(@(t,x) SystemDynamics(t,x,h,dh,ddh,parms),t,x0,opt);
-x_end = y(end,1:5)';
+x0 =    [qr(0)+[0.1;0.1];
+        dqr(0)];
+t = 0:dt:10;
+opt = odeset('RelTol',1e-4);
+[~,y] = ode45(@(t,x) SystemDynamics(t,x,qr,dqr,ddqr,rho,parms),t,x0,opt);
+x_end = y(end,:)';
 
 %% plots and animation
+animate = false;
 %get values of interest
 theta1 = y(:,1);              % joint 1
 theta2 = y(:,2);              % joint 2
 
 %animate robot arm:
-animate2DOF(parms,theta1,theta2,dt, ...
-            'Trace',true, ...
-            'FigureName','2‑DOF Robot – sinusoid');
-
+if animate 
+    animate2DOF(parms,theta1,theta2,dt, ...
+                'Trace',true, ...
+                'FigureName','2‑DOF Robot – sinusoid');
+end
 %%% plot error:
 figure name 'error'
-h_ = @(s) PathCoordinating(s,h);
+h_ = @(s) PathCoordinating(s,qr);
 q = zeros(n,length(t));
 diff = zeros(n,length(t));
 for i = 1:length(t)
-    q(:,i) = h_(y(i,5));
+    q(:,i) = qr(t(i));
     diff(1,i) = theta1(i) - q(1,i);
     diff(2,i) = theta2(i) - q(2,i);
 end
@@ -139,13 +144,13 @@ hold off
 
 %%% plot phase planes:
 figure name 'q dq'
-h_ = @(s) PathCoordinating(s,h);
-dh_ = @(s) PathCoordinating(s,dh);
+h_ = @(s) PathCoordinating(s,qr);
+dh_ = @(s) PathCoordinating(s,dqr);
 q = zeros(n,length(t));
 dq = zeros(n,length(t));
 for i = 1:length(t)
-    q(:,i) = h_(y(i,5));
-    dq(:,i) = dh_(y(i,5));
+    q(:,i) = qr(t(i));
+    dq(:,i) = dqr(t(i));
 end
 
 subplot(2,1,1);
@@ -179,3 +184,17 @@ plot(q(1,1),q(2,1),'p')
 xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
 hold off
+
+%%% plot desired path and actual path in same plot
+figure name 'walked path'
+hold on
+grid on
+title ('walked path')
+plot(q(1,:),q(2,:),LineWidth=1.5);
+plot(y(:,1),y(:,2),LineWidth=1.5);
+plot(q1_mid,q2_mid,'p')
+plot(q(1,1),q(2,1),'p')
+xlabel('\(q_1\)','Interpreter','latex');
+ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
+hold off
+
