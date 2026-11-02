@@ -95,38 +95,48 @@ end
 % main_sim
 dt = 0.01; 
 q0 = InvKinematics(c(:,1),parms);
-x0 = [qr(:,1);
-      dqr(:,1);
-        0]
+x0 =    [qr(:,1);
+        dqr(:,1);
+        0];
 t = 0:dt:4;
-opt = odeset('RelTol',1e-5);
+opt = odeset('RelTol',1e-8);
 [~,y] = ode45(@(t,x) systemDynamics(t,x,h,dh,ddh,parms),t,x0,opt);
-x_end = y(end,1:5)'
+x_end = y(end,1:5)';
 %% plots and animation
 %get values of interest
 theta1 = y(:,1);              % joint 1
 theta2 = y(:,2);              % joint 2
 
 %animate robot arm:
-% animate2DOF(parms,theta1,theta2,dt, ...
-%             'Trace',true, ...
-%             'FigureName','2‑DOF Robot – sinusoid');
+animate2DOF(parms,theta1,theta2,dt, ...
+            'Trace',true, ...
+            'FigureName','2‑DOF Robot – sinusoid');
 
-%plot error:
-figure name 'q1 - q1r'
+%%% plot error:
+figure name 'error'
 h_ = @(s) PathCoordinating(s,h);
 q = zeros(n,length(t));
-diff = zeros(1,length(t));
+diff = zeros(n,length(t));
 for i = 1:length(t)
     q(:,i) = h_(y(i,5));
-    diff(i) = theta1(i) - q(1,i);
+    diff(1,i) = theta1(i) - q(1,i);
+    diff(2,i) = theta2(i) - q(2,i);
 end
+subplot(2,1,1)
 hold on
 grid on
-plot(t,diff,'Color','g');
+plot(t,diff(1,:),LineWidth=1.5);
 legend
 hold off
 
+subplot(2,1,2)
+hold on
+grid on
+plot(t,diff(2,:),LineWidth=1.5);
+legend
+hold off
+
+%%% plot phase planes:
 figure name 'q dq'
 h_ = @(s) PathCoordinating(s,h);
 dh_ = @(s) PathCoordinating(s,dh);
@@ -137,7 +147,7 @@ for i = 1:length(t)
     dq(:,i) = dh_(y(i,5));
 end
 
-subplot(3,1,1);
+subplot(2,1,1);
 hold on
 grid on
 title('phase plane nominal q_1')
@@ -146,7 +156,7 @@ xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(\dot{q}_1\)','Interpreter','latex',Rotation=0);
 hold off
 
-subplot(3,1,2);
+subplot(2,1,2);
 hold on
 grid on
 title('phase plane nominal q_2')
@@ -155,11 +165,16 @@ xlabel('\(q_2\)','Interpreter','latex');
 ylabel('\(\dot{q}_2\)','Interpreter','latex',Rotation=0);
 hold off
 
-subplot(3,1,3);
+%%% plot orbit in state space
+figure name 'orbit in state space'
+q1_mid = sum(q(1,:))/size(q(1,:),2);
+q2_mid = sum(q(2,:))/size(q(2,:),2);
 hold on
 grid on
 title('orbit in q_1, q_2 space')
 plot(q(1,:),q(2,:),LineWidth=1.5);
+plot(q1_mid,q2_mid,'p')
+plot(q(1,1),q(2,1),'p')
 xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
 hold off
@@ -171,10 +186,30 @@ function dxdt = systemDynamics(t,x,h,dh,ddh,parms)
     dq = x(n+1:end-1);
     s = x(end);
     
-    %% path shit
+    %% path generation and location
     rho = @(s) 1;
+    q1_mid = -0.360799276716427;
+    q2_mid = 2.296312078050181;
+    q_mid = [q1_mid;q2_mid];
+
+    q0 = PathCoordinating(0,h);
+    q0_bar = q0 - q_mid;
     
+    q_bar = q - q_mid;
+
+    theta = atan2(q_bar(2),q_bar(1));
+    theta0 = atan2(q0_bar(2),q0_bar(1));
+
+    if theta < 0 
+        theta = theta + 2*pi;
+    end
+    if theta0 < 0 
+        theta0 = theta0 + 2*pi;
+    end
     
+    theta_bar = -theta + theta0;
+    s_ = mod(4*theta_bar/(2*pi),4)
+     
     h_ = PathCoordinating(s,h);
     dh_ = PathCoordinating(s,dh);
     ddh_ = PathCoordinating(s,ddh);
@@ -183,7 +218,9 @@ function dxdt = systemDynamics(t,x,h,dh,ddh,parms)
     dq_r = dh_*rho(s);
     ddq_r = ddh_*rho(s)^2 + ddh_*0;
     %% controller 
-    u_transverse = 0;
+    e = q-h_;
+    kp = 0;
+    u_transverse = kp*e;
     u_nom = M(q_r,parms)*ddq_r + C(q_r,dq_r,parms)*dq_r + G(q_r,parms);
     u = @(x) u_nom + u_transverse;
 
