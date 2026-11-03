@@ -3,7 +3,6 @@ clc;clear;
 addpath Robot_2DOF
 addpath Pathplanning
 
-
 %% set system paramters:
 parms.J1 = 2;
 parms.J2 = 2;
@@ -32,8 +31,8 @@ a = [ax;ay];
 n = 2; %number of DOFs
 N = size(c,2); %number of points
 
-
-rho = @(s) 2; %ds/dt
+rho = @(s) 1; %ds/dt
+drho = @(s) 0; %drho/ds
 
 pr = zeros(n,N);
 dpr = zeros(n,N);
@@ -43,13 +42,8 @@ for j = 1:N
     dpr(:,j) = InvVelocityKinematics(pr(:,j),v(:,j),parms);
     ddpr(:,j) = InvAccelerationKinematics(pr(:,j),dpr(:,j),a(:,j),parms);
 end
+Path_obj = PathPlanning(pr,dpr,ddpr,rho,drho);
 
-path_obj = PathPlanning(pr,dpr,ddpr,rho);
-orbit_length = 2*pi;
-psi = pi/4;
-qr = @(s) [cos(s+psi);sin(s+psi)] + [-1;0.5];
-dqr = @(s) [-sin(s+psi);cos(s+psi)]*rho(s);
-ddqr = @(s) [-cos(s+psi);-sin(s+psi)]*rho(s+psi)^2 + [-sin(s+psi);cos(s+psi)]*0;
 %% Proof the system works (if i get the implementation right)
 % s = 0:0.01:1;
 % p = zeros(3,length(s));
@@ -98,19 +92,20 @@ ddqr = @(s) [-cos(s+psi);-sin(s+psi)]*rho(s+psi)^2 + [-sin(s+psi);cos(s+psi)]*0;
 % hold off
 %% simulate:
 
-% main_sim
-dt = 0.01; 
+dt = 0.01;
 q0 = InvKinematics(c(:,1),parms);
-x0 =    [qr(0)+[0.01;0.01];
-        dqr(0)];
+x0 =    [Path_obj.qr(0.1);
+        Path_obj.dqr(0.1)];
+
 t = 0:dt:10;
-opt = odeset('RelTol',1e-4);
-disp('noe')
-[~,y] = ode45(@(t,x) SystemDynamics(t,x,qr,dqr,ddqr,rho,parms),t,x0,opt);
+opt = odeset('RelTol',1e-8);
+disp('start')
+[~,y] = ode45(@(t,x) SystemDynamics(t,x,Path_obj,parms),t,x0,opt);
+disp('end')
 x_end = y(end,:)';
 
 %% plots and animation
-animate = false;
+animate = 0;
 %get values of interest
 theta1 = y(:,1);              % joint 1
 theta2 = y(:,2);              % joint 2
@@ -122,20 +117,34 @@ if animate
                 'FigureName','2‑DOF Robot – sinusoid');
 end
 
-%%% plot phase planes:
-figure name 'q dq'
-h_ = @(s) PathCoordinating(s,qr);
-dh_ = @(s) PathCoordinating(s,dqr);
+
+
+ds = dt;
+qr = @(s) Path_obj.qr(s);
+dqr = @(s) Path_obj.dqr(s);
 q = zeros(n,length(t));
 dq = zeros(n,length(t));
-q1_mid = 0;
-q2_mid = 0;
-for i = 1:length(t)
-    q(:,i) = qr(t(i));
-    dq(:,i) = dqr(t(i));
+for k = 1:length(t)
+    q(:,k) = qr(t(k));
+    dq(:,k) = dqr(t(k));
 end
-q1_mid = q1_mid/t(end);
-q2_mid = q2_mid/t(end);
+%%% plot error:
+figure name 'error'
+e1 = theta1' - q(1,:);
+e2 = theta2' - q(2,:);
+hold on
+grid on
+title('error e=q-qr')
+plot(t,e1,LineWidth=1.5)
+plot(t,e2,LineWidth=1.5)
+legend('q1','q2')
+xlabel('\(t\)','Interpreter','latex');
+ylabel('\(e\)','Interpreter','latex',Rotation=0);
+hold off
+
+
+%%% plot phase planes:
+figure name 'q dq'
 subplot(2,1,1);
 hold on
 grid on
@@ -156,13 +165,7 @@ hold off
 
 %%% plot orbit in state space
 figure name 'orbit in state space'
-q_mid = 0;
-for s = 0:dt:orbit_length
-    temp = qr(s); 
-    q_mid = q_mid + dt*temp;
-end
-q_mid = q_mid/(2*pi);
-% q2_mid = q2_mid/(2*pi);
+q_mid = Path_obj.qr_mid;
 
 hold on
 grid on
@@ -179,7 +182,7 @@ figure name 'walked path'
 hold on
 grid on
 title ('walked path')
-plot(q(1,:),q(2,:),LineWidth=1.5);
+plot(q(1,:),q(2,:),LineWidth=1.5,LineStyle='--');
 plot(y(:,1),y(:,2),LineWidth=1.5);
 plot(q_mid(1),q_mid(2),'p')
 plot(q(1,1),q(2,1),'p')
