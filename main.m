@@ -44,10 +44,12 @@ for j = 1:N
     ddpr(:,j) = InvAccelerationKinematics(pr(:,j),dpr(:,j),a(:,j),parms);
 end
 
-%[h,dh,ddh] = PathPlanning(qr,dqr,ddqr);
-qr = @(s) [cos(s);sin(s)];
-dqr = @(s) [-sin(s);cos(s)]*rho(s);
-ddqr = @(s) [-cos(s);-sin(s)]*rho(s)^2 + [-sin(s);cos(s)]*0;
+path_obj = PathPlanning(pr,dpr,ddpr,rho);
+orbit_length = 2*pi;
+psi = pi/4;
+qr = @(s) [cos(s+psi);sin(s+psi)] + [-1;0.5];
+dqr = @(s) [-sin(s+psi);cos(s+psi)]*rho(s);
+ddqr = @(s) [-cos(s+psi);-sin(s+psi)]*rho(s+psi)^2 + [-sin(s+psi);cos(s+psi)]*0;
 %% Proof the system works (if i get the implementation right)
 % s = 0:0.01:1;
 % p = zeros(3,length(s));
@@ -99,10 +101,11 @@ ddqr = @(s) [-cos(s);-sin(s)]*rho(s)^2 + [-sin(s);cos(s)]*0;
 % main_sim
 dt = 0.01; 
 q0 = InvKinematics(c(:,1),parms);
-x0 =    [qr(0)+[0.1;0.1];
+x0 =    [qr(0)+[0.01;0.01];
         dqr(0)];
 t = 0:dt:10;
 opt = odeset('RelTol',1e-4);
+disp('noe')
 [~,y] = ode45(@(t,x) SystemDynamics(t,x,qr,dqr,ddqr,rho,parms),t,x0,opt);
 x_end = y(end,:)';
 
@@ -118,29 +121,6 @@ if animate
                 'Trace',true, ...
                 'FigureName','2‑DOF Robot – sinusoid');
 end
-%%% plot error:
-figure name 'error'
-h_ = @(s) PathCoordinating(s,qr);
-q = zeros(n,length(t));
-diff = zeros(n,length(t));
-for i = 1:length(t)
-    q(:,i) = qr(t(i));
-    diff(1,i) = theta1(i) - q(1,i);
-    diff(2,i) = theta2(i) - q(2,i);
-end
-subplot(2,1,1)
-hold on
-grid on
-plot(t,diff(1,:),LineWidth=1.5);
-legend
-hold off
-
-subplot(2,1,2)
-hold on
-grid on
-plot(t,diff(2,:),LineWidth=1.5);
-legend
-hold off
 
 %%% plot phase planes:
 figure name 'q dq'
@@ -148,11 +128,14 @@ h_ = @(s) PathCoordinating(s,qr);
 dh_ = @(s) PathCoordinating(s,dqr);
 q = zeros(n,length(t));
 dq = zeros(n,length(t));
+q1_mid = 0;
+q2_mid = 0;
 for i = 1:length(t)
     q(:,i) = qr(t(i));
     dq(:,i) = dqr(t(i));
 end
-
+q1_mid = q1_mid/t(end);
+q2_mid = q2_mid/t(end);
 subplot(2,1,1);
 hold on
 grid on
@@ -173,13 +156,19 @@ hold off
 
 %%% plot orbit in state space
 figure name 'orbit in state space'
-q1_mid = sum(q(1,:))/size(q(1,:),2);
-q2_mid = sum(q(2,:))/size(q(2,:),2);
+q_mid = 0;
+for s = 0:dt:orbit_length
+    temp = qr(s); 
+    q_mid = q_mid + dt*temp;
+end
+q_mid = q_mid/(2*pi);
+% q2_mid = q2_mid/(2*pi);
+
 hold on
 grid on
 title('orbit in q_1, q_2 space')
 plot(q(1,:),q(2,:),LineWidth=1.5);
-plot(q1_mid,q2_mid,'p')
+plot(q_mid(1),q_mid(2),'p')
 plot(q(1,1),q(2,1),'p')
 xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
@@ -192,8 +181,9 @@ grid on
 title ('walked path')
 plot(q(1,:),q(2,:),LineWidth=1.5);
 plot(y(:,1),y(:,2),LineWidth=1.5);
-plot(q1_mid,q2_mid,'p')
+plot(q_mid(1),q_mid(2),'p')
 plot(q(1,1),q(2,1),'p')
+plot(y(1,1),y(1,2),'p')
 xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
 hold off

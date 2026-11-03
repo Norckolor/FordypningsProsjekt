@@ -1,4 +1,4 @@
-function [h,dh,ddh] = PathPlanning(p,dp,ddp)
+function path_obj = PathPlanning(p,dp,ddp,rho)
     %%% PathPlanning %%%
 
     % To compute a path between points we use a 5th order polynomial:
@@ -66,4 +66,25 @@ function [h,dh,ddh] = PathPlanning(p,dp,ddp)
         ddh{i,j} = @(s) [2, 6*s, 12*s^2, 20*s^3] * ax(3:end,i);
         end
     end
+
+    q_mid = 0;
+    ds = 0.01;
+    for s = 0:ds:N
+        temp = PathCoordinating(s,h); 
+        q_mid = q_mid + ds*temp;
+    end
+    qr_mid = q_mid/(2*pi);
+
+    path_obj.h          = h;
+    path_obj.dh         = dh;
+    path_obj.ddh        = ddh;
+    path_obj.length     = N;
+    path_obj.segments   = N;
+    path_obj.dofs       = n;
+    path_obj.qr_mid     = qr_mid;
+    path_obj.rho        = rho;
+    path_obj.qr         = @(s) PathCoordinating(s,h);
+    path_obj.dqr        = @(s) PathCoordinating(s,dh)*rho(s);
+    path_obj.ddqr       = @(s) PathCoordinating(s,ddh)*rho(s)^2 +...
+                               PathCoordinating(s,dh)*rho(s)*drho(s);
 end
