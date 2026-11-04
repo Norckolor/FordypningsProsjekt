@@ -31,7 +31,7 @@ a = [ax;ay];
 n = 2; %number of DOFs
 N = size(c,2); %number of points
 
-rho = @(s) 1; %ds/dt
+rho = @(s) 2; %ds/dt
 drho = @(s) 0; %drho/ds
 
 pr = zeros(n,N);
@@ -94,18 +94,22 @@ Path_obj = PathPlanning(pr,dpr,ddpr,rho,drho);
 
 dt = 0.01;
 q0 = InvKinematics(c(:,1),parms);
-x0 =    [Path_obj.qr(0.1);
-        Path_obj.dqr(0.1)];
+x0 =    [1.2;
+        2.4;
+        -1.2;
+        0];
+% x0 = [Path_obj.qr(4);
+%       Path_obj.dqr(4)];
 
 t = 0:dt:10;
 opt = odeset('RelTol',1e-8);
 disp('start')
-[~,y] = ode45(@(t,x) SystemDynamics(t,x,Path_obj,parms),t,x0,opt);
+[~,y] = ode45(@(t,x) SystemDynamics(t,x,Path_obj,parms),t,x0);
 disp('end')
 x_end = y(end,:)';
 
 %% plots and animation
-animate = 0;
+animate = 1;
 %get values of interest
 theta1 = y(:,1);              % joint 1
 theta2 = y(:,2);              % joint 2
@@ -163,10 +167,9 @@ xlabel('\(q_2\)','Interpreter','latex');
 ylabel('\(\dot{q}_2\)','Interpreter','latex',Rotation=0);
 hold off
 
-%%% plot orbit in state space
-figure name 'orbit in state space'
+%%% plot orbit qr in state space
+figure name 'qr orbit in state space'
 q_mid = Path_obj.qr_mid;
-
 hold on
 grid on
 title('orbit in q_1, q_2 space')
@@ -177,17 +180,42 @@ xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
 hold off
 
-%%% plot desired path and actual path in same plot
-figure name 'walked path'
+%%% plot orbit dqr in state space
+figure name 'dqr orbit in state space'
+q_mid = Path_obj.qr_mid;
 hold on
 grid on
-title ('walked path')
-plot(q(1,:),q(2,:),LineWidth=1.5,LineStyle='--');
+title('orbit in q_1, q_2 space')
+plot(dq(1,:),dq(2,:),LineWidth=1.5);
+plot(dq(1,1),dq(2,1),'p')
+xlabel('\(q_1\)','Interpreter','latex');
+ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
+hold off
+
+%%% plot desired path and actual path
+figure name 'walked path q'
+hold on
+grid on
+title ('walked path q')
+plot(q(1,:),q(2,:),LineWidth=2.5,LineStyle='--');
 plot(y(:,1),y(:,2),LineWidth=1.5);
 plot(q_mid(1),q_mid(2),'p')
 plot(q(1,1),q(2,1),'p')
 plot(y(1,1),y(1,2),'p')
 xlabel('\(q_1\)','Interpreter','latex');
 ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
+hold off
+
+%%% plot desired path and actual path dq
+figure name 'walked path dq'
+hold on
+grid on
+title ('walked path dq')
+plot(dq(1,:),dq(2,:),LineWidth=2.5,LineStyle='--');
+plot(y(:,3),y(:,4),LineWidth=1.5);
+plot(dq(1,1),dq(2,1),'p')
+plot(y(1,3),y(1,4),'p')
+xlabel('\(\dot{q}_1\)','Interpreter','latex');
+ylabel('\(dot{q}_2\)','Interpreter','latex',Rotation=0);
 hold off
 

@@ -67,6 +67,8 @@ end
 % -------------------------------------------------------------------------
 figure('Color','w','Name',figName);
 axis equal; grid on; hold on;
+xlabel('x[m]')
+ylabel('y[m]')
 reach = L1+L2;
 axis([-reach reach -reach reach]);
 
