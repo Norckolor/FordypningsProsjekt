@@ -33,7 +33,7 @@ function path_obj = PathPlanning(p,dp,ddp,rho,drho)
         ddx = ddp(i,:);
         xp = [x;dx;ddx];
 
-        vx(:,:,i) = [xp;circshift(xp,[0,-1])]
+        vx(:,:,i) = [xp;circshift(xp,[0,-1])];
     end
     
     A = [1 0 0 0 0 0;
@@ -43,8 +43,7 @@ function path_obj = PathPlanning(p,dp,ddp,rho,drho)
          0 1 2 3 4 5;
          0 0 2 6 12 20];
     
-
-    ax  = zeros(6,N,n);
+    ax  = zeros(6,N,n); %6 unknown values in polynomial
     h   = cell(n,N);
     dh  = cell(n,N);
     ddh = cell(n,N);
@@ -52,8 +51,7 @@ function path_obj = PathPlanning(p,dp,ddp,rho,drho)
     for i = 1:n
         for j = 1:N 
         
-        ax(:,j,i) = A\vx(:,j,i)
-        disp("---")
+        ax(:,j,i) = A\vx(:,j,i);
         h{i,j} = @(s) [1, s, s^2, s^3, s^4, s^5] * ax(:,j,i);
         dh{i,j} = @(s) [1, 2*s, 3*s^2, 4*s^3, 5*s^4] * ax(2:end,j,i);
         ddh{i,j} = @(s) [2, 6*s, 12*s^2, 20*s^3] * ax(3:end,j,i);

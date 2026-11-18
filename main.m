@@ -2,7 +2,7 @@ clc;clear;
 %% add Paths:
 addpath Robot_2DOF
 addpath Pathplanning
-
+addpath PlotsAndAnimations
 %% set system paramters:
 parms.J1 = 2;
 parms.J2 = 2;
@@ -43,53 +43,8 @@ for j = 1:N
     ddpr(:,j) = InvAccelerationKinematics(pr(:,j),dpr(:,j),a(:,j),parms);
 end
 Path_obj = PathPlanning(pr,dpr,ddpr,rho,drho);
+parms.Path_obj = Path_obj;
 
-%% Proof the system works (if i get the implementation right)
-% s = 0:0.01:1;
-% p = zeros(3,length(s));
-% 
-% q1 = zeros(N,length(s));
-% q2 = zeros(N,length(s));
-% figure Name 'statespace'
-% hold on
-% 
-% for j = 1:N
-%     h_1 = h{1,j};
-%     h_2 = h{2,j};
-%     plot(qr(1,j),qr(2,j),'h')
-%     for k = 1:length(s)
-%         % point(:,k) = ForwardKinematics(h_(s(k)),parms);
-%         q1(j,k) = h_1(s(k));
-%         q2(j,k) = h_2(s(k));
-%     end
-%     plot(q1(j,:),q2(j,:))
-% 
-% end
-% legend
-% hold off
-% 
-% figure Name 'xyz'
-% x = zeros(N,length(s));
-% y = zeros(N,length(s));
-% z = zeros(N,length(s));
-% hold on
-% grid on
-% xlim([-2,2])
-% ylim([-2,2])
-% for j = 1:N
-%     for k = 1:length(s)
-%         xyz = ForwardKinematics([q1(j,k),q2(j,k)],parms);
-%         x(j,k) = xyz(1);
-%         y(j,k) = xyz(2);
-%         z(j,k) = xyz(3);
-% 
-% 
-%     end
-%    plot3(x(j,1),y(j,1),z(j,1),'h')
-%    plot3(x(j,:),y(j,:),z(j,:),'LineWidth',2)
-% end
-% legend
-% hold off
 %% simulate:
 
 dt = 0.01;
@@ -98,188 +53,27 @@ x0 =    [1.2;
         2.4;
         -1.2;
         0];
-% x0 = [Path_obj.qr(4);
-%       Path_obj.dqr(4)];
+% x0 = [Path_obj.qr(0);
+%       Path_obj.dqr(0)];
 
 t = 0:dt:10;
-opt = odeset('RelTol',1e-8);
-disp('start')
-[~,y] = ode45(@(t,x) SystemDynamics(t,x,Path_obj,parms),t,x0);
-disp('end')
-x_end = y(end,:)';
+disp('start sim');
+tic
+[~,y] = ode45(@(t,x) SystemDynamics(t,x,parms),t,x0);
+sim_time = toc;
+disp(['end sim in ',num2str(sim_time),'s'])
+
 
 %% plots and animation
-animate = 0;
-%get values of interest
-theta1 = y(:,1);              % joint 1
-theta2 = y(:,2);              % joint 2
+show_animaiton = 0;
+show_plots = 1;
 
-%animate robot arm:
-if animate 
-    animate2DOF(parms,theta1,theta2,dt, ...
+if show_animaiton 
+    animate2DOF(parms,y,dt, ...
                 'Trace',true, ...
                 'FigureName','2‑DOF Robot – sinusoid');
 end
 
-
-
-ds = dt;
-qr = @(s) Path_obj.qr(s);
-dqr = @(s) Path_obj.dqr(s);
-ddqr = @(s) Path_obj.ddqr(s);
-
-q = zeros(n,length(t));
-dq = zeros(n,length(t));
-ddq = zeros(n,length(t));
-Jerk = zeros(n,length(t));
-
-ddq_last = zeros(n,1);
-for k = 1:length(t)
-    q(:,k) = qr(t(k));
-    dq(:,k) = dqr(t(k));
-    ddq(:,k) = ddqr(t(k));
-    Jerk(:,k) = (ddq(:,k) - ddq_last)/ds;
-    ddq_last = ddq(:,k);
+if show_plots
+    plots(parms,y,dt,t)
 end
-%%% plot error:
-figure name 'error'
-e1 = theta1' - q(1,:);
-e2 = theta2' - q(2,:);
-hold on
-grid on
-title('error e=q-qr')
-plot(t,e1,LineWidth=1.5)
-plot(t,e2,LineWidth=1.5)
-legend('q1','q2')
-xlabel('\(t\)','Interpreter','latex');
-ylabel('\(e\)','Interpreter','latex',Rotation=0);
-hold off
-
-
-%%% plot phase planes:
-figure name 'q dq'
-subplot(2,1,1);
-hold on
-grid on
-title('phase plane nominal q_1')
-plot(q(1,:),dq(1,:),LineWidth=1.5);
-xlabel('\(q_1\)','Interpreter','latex');
-ylabel('\(\dot{q}_1\)','Interpreter','latex',Rotation=0);
-hold off
-
-subplot(2,1,2);
-hold on
-grid on
-title('phase plane nominal q_2')
-plot(q(2,:),dq(2,:),LineWidth=1.5);
-xlabel('\(q_2\)','Interpreter','latex');
-ylabel('\(\dot{q}_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot orbit qr in state space
-figure name 'qr orbit in state space'
-q_mid = Path_obj.qr_mid;
-hold on
-grid on
-title('orbit in q_1, q_2 space')
-plot(q(1,:),q(2,:),LineWidth=1.5);
-plot(q_mid(1),q_mid(2),'p')
-plot(q(1,1),q(2,1),'p')
-xlabel('\(q_1\)','Interpreter','latex');
-ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot orbit dqr in state space
-figure name 'dqr orbit in state space'
-q_mid = Path_obj.qr_mid;
-hold on
-grid on
-title('orbit in q_1, q_2 space')
-plot(dq(1,:),dq(2,:),LineWidth=1.5);
-plot(dq(1,1),dq(2,1),'p')
-xlabel('\(q_1\)','Interpreter','latex');
-ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot desired path and actual path
-figure name 'walked path q'
-hold on
-grid on
-title ('walked path q')
-plot(q(1,:),q(2,:),LineWidth=2.5,LineStyle='--');
-plot(y(:,1),y(:,2),LineWidth=1.5);
-plot(q_mid(1),q_mid(2),'p')
-plot(q(1,1),q(2,1),'p')
-plot(y(1,1),y(1,2),'p')
-xlabel('\(q_1\)','Interpreter','latex');
-ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot desired path and actual path dq
-figure name 'walked path dq'
-hold on
-grid on
-title ('walked path dq')
-plot(dq(1,:),dq(2,:),LineWidth=2.5,LineStyle='--');
-plot(y(:,3),y(:,4),LineWidth=1.5);
-plot(dq(1,1),dq(2,1),'p')
-plot(y(1,3),y(1,4),'p')
-xlabel('\(\dot{q}_1\)','Interpreter','latex');
-ylabel('\(dot{q}_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot desired path ddqphase plot
-figure name 'desired path ddq phase plot'
-hold on
-grid on
-title ('desired path ddq')
-plot(ddq(1,:),ddq(2,:),LineWidth=2.5);
-plot(ddq(1,1),ddq(2,1),'p')
-xlabel('\(\ddot{q}_1\)','Interpreter','latex');
-ylabel('\(ddot{q}_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot desired path q in s
-figure name 'desired path q in s'
-hold on
-grid on
-title ('desired path q')
-plot(t,q(1,:),LineWidth=2.5);
-plot(t,q(2,:),LineWidth=2.5);
-xlabel('s');
-ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot desired path dq in s
-figure name 'desired path dq in s'
-hold on
-grid on
-title ('desired path dq')
-plot(t,dq(1,:),LineWidth=2.5);
-plot(t,dq(2,:),LineWidth=2.5);
-xlabel('s');
-ylabel('\(\ddot{q}_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-
-%%% plot desired path ddq in s
-figure name 'desired path ddq in s'
-hold on
-grid on
-title ('desired path ddq')
-plot(t,ddq(1,:),LineWidth=2.5);
-plot(t,ddq(2,:),LineWidth=2.5);
-xlabel('s');
-ylabel('\(\ddot{q}_2\)','Interpreter','latex',Rotation=0);
-hold off
-
-%%% plot desired path jerk in s
-figure name 'desired path jerk in s'
-hold on
-grid on
-title ('desired path jerk')
-plot(t,Jerk(1,:),LineWidth=2.5);
-plot(t,Jerk(2,:),LineWidth=2.5);
-xlabel('s');
-ylabel('\(\ddot{q}_2\)','Interpreter','latex',Rotation=0);
-hold off

@@ -1,4 +1,4 @@
-function animate2DOF(parms,theta1,theta2,dt,varargin)
+function animate2DOF(parms,y,dt,varargin)
 %ANIMATE2DOF  Animate a planar 2‑link manipulator.
 %
 %   animate2DOF(L1,L2,theta1,theta2,dt) 
@@ -27,17 +27,15 @@ function animate2DOF(parms,theta1,theta2,dt,varargin)
 % 1.  Parse and check inputs
 % -------------------------------------------------------------------------
 % parameters: 
-J1 = parms.J1;
-J2 = parms.J2;
 L1 = parms.L1;
 L2 = parms.L2;
-m1 = parms.m1;
-m2 = parms.m2;
-g = parms.g;
+theta1 = y(:,1);    % joint 1 angle
+theta2 = y(:,2);    % joint 2 angle
 
 n = numel(theta1);
 assert(numel(theta2)==n,'theta1 and theta2 must have the same length');
 assert(isscalar(dt) && dt>0,'dt must be a positive scalar');
+
 
 % Default optional arguments
 traceFlag   = true;

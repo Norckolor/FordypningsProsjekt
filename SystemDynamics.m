@@ -1,14 +1,16 @@
-function dxdt = SystemDynamics(t,x,path_obj,parms)
+function dxdt = SystemDynamics(t,x,parms)
     %% extract values from funciton input:
     n = 2;
     q = x(1:n);
     dq = x(n+1:2*n);
 
-    qr_mid = path_obj.qr_mid;
-    qr = @(s) path_obj.qr(s);
-    dqr = @(s) path_obj.dqr(s);
-    ddqr = @(s) path_obj.ddqr(s);
-    path_length = path_obj.length;
+    Path_obj = parms.Path_obj;
+    
+    qr_mid = Path_obj.qr_mid;
+    qr = @(s) Path_obj.qr(s);
+    dqr = @(s) Path_obj.dqr(s);
+    ddqr = @(s) Path_obj.ddqr(s);
+    path_length = Path_obj.length;
     
     persistent x0;
     if isempty(x0)
