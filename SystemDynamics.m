@@ -51,7 +51,7 @@ function dxdt = SystemDynamics(t,x,path_obj,parms)
     %% controller 
     e = q-q_r;
     de = dq-dq_r;
-    kp = -30; kd = -30; %-10 -10 looked nice ish
+    kp = -10; kd = -10; 
     u_transverse = kp*e + kd*de;
     u_nom = M(q_r,parms)*ddq_r + C(q_r,dq_r,parms)*dq_r + G(q_r,parms);
     u = u_nom + u_transverse;

@@ -1,7 +1,7 @@
 function [p] = PathCoordinating(s,h)
     N = size(h,2);
     n = size(h,1);
-
+    
     j = floor(mod(s,N)) + 1;
 
     p = zeros(n,1);
