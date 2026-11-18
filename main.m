@@ -239,47 +239,47 @@ xlabel('\(\ddot{q}_1\)','Interpreter','latex');
 ylabel('\(ddot{q}_2\)','Interpreter','latex',Rotation=0);
 hold off
 
-%%% plot desired path q in time
+%%% plot desired path q in s
 figure name 'desired path q in s'
 hold on
 grid on
-title ('desired path ddq')
+title ('desired path q')
 plot(t,q(1,:),LineWidth=2.5);
 plot(t,q(2,:),LineWidth=2.5);
-xlabel('\(\ddot{q}_1\)','Interpreter','latex');
-ylabel('\(\ddot{q}_2\)','Interpreter','latex',Rotation=0);
+xlabel('s');
+ylabel('\(q_2\)','Interpreter','latex',Rotation=0);
 hold off
 
-%%% plot desired path dq in time
+%%% plot desired path dq in s
 figure name 'desired path dq in s'
 hold on
 grid on
-title ('desired path ddq')
+title ('desired path dq')
 plot(t,dq(1,:),LineWidth=2.5);
 plot(t,dq(2,:),LineWidth=2.5);
-xlabel('\(\ddot{q}_1\)','Interpreter','latex');
+xlabel('s');
 ylabel('\(\ddot{q}_2\)','Interpreter','latex',Rotation=0);
 hold off
 
 
-%%% plot desired path ddq in time
+%%% plot desired path ddq in s
 figure name 'desired path ddq in s'
 hold on
 grid on
 title ('desired path ddq')
 plot(t,ddq(1,:),LineWidth=2.5);
 plot(t,ddq(2,:),LineWidth=2.5);
-xlabel('\(\ddot{q}_1\)','Interpreter','latex');
+xlabel('s');
 ylabel('\(\ddot{q}_2\)','Interpreter','latex',Rotation=0);
 hold off
 
-%%% plot desired path jerk in time
+%%% plot desired path jerk in s
 figure name 'desired path jerk in s'
 hold on
 grid on
 title ('desired path jerk')
 plot(t,Jerk(1,:),LineWidth=2.5);
 plot(t,Jerk(2,:),LineWidth=2.5);
-xlabel('\(\ddot{q}_1\)','Interpreter','latex');
+xlabel('s');
 ylabel('\(\ddot{q}_2\)','Interpreter','latex',Rotation=0);
 hold off
