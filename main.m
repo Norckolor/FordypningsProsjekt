@@ -23,7 +23,7 @@ save("parms.mat","parms");
 %% Make controller:
 tic
 %[K,~,~] = MakeController(parms);
-load("K.mat"); % made with order = 5 and l = 100, took ca 1h 30min to run ( a few min more, no reason to count it)
+load("K.mat"); % made with order = 50 and l = 100, took ca 1h 30min to run ( a few min more, no reason to count it)
 toc
 %% simulate:
 
