@@ -1,4 +1,4 @@
-function dxdt = SystemDynamics(t,x,parms)
+function dxdt = SystemDynamics(t,x,K,parms)
     %% extract values from funciton input:
     n = 2;
     q = x(1:n);
@@ -33,13 +33,13 @@ function dxdt = SystemDynamics(t,x,parms)
     % s = path_length*theta_bar/(2*pi); 
     
     %%% with optimization
-    A = eye(n);
+    A = 4*eye(n);
 
     %(x-xr)'A(x-xr)
-    %func = @(s) (q-qr(s))'*A*(q-qr(s)) + (dq-dqr(s))'*A*(dq-dqr(s));
+    func = @(s) (q-qr(s))'*A*(q-qr(s)) + (dq-dqr(s))'*A*(dq-dqr(s));
     
     %(q-qr)'A(q-qr)
-    func = @(s) (q-qr(s))'*A*(q-qr(s)); 
+    %func = @(s) (q-qr(s))'*A*(q-qr(s)); 
 
     opts = optimoptions('fminunc','Display','off');
     s = fminunc(func,x0,opts);
@@ -50,11 +50,13 @@ function dxdt = SystemDynamics(t,x,parms)
     dq_r = dqr(s);
     ddq_r = ddqr(s);
 
-    %% controller 
+    %% controller
+    t
     e = q-q_r;
     de = dq-dq_r;
-    kp = -10; kd = -10; 
-    u_transverse = kp*e + kd*de;
+    e_trans = [e;de];
+    % kp = -100; kd = -100; 
+    u_transverse = K(s)*e_trans;
     u_nom = M(q_r,parms)*ddq_r + C(q_r,dq_r,parms)*dq_r + G(q_r,parms);
     u = u_nom + u_transverse;
 

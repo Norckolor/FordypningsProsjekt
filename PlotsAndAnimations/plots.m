@@ -89,6 +89,8 @@ function plots(parms,y,dt,t)
     plot(y(:,1),y(:,2),LineWidth=1.5);
     plot(q_mid(1),q_mid(2),'p')
     plot(q(1,1),q(2,1),'p')
+    plot(q(1,2/dt),q(2,2/dt),'p')
+    plot(q(1,3/dt),q(2,3/dt),'p') 
     plot(y(1,1),y(1,2),'p')
     xlabel('\(q_1\)','Interpreter','latex');
     ylabel('\(q_2\)','Interpreter','latex',Rotation=0);

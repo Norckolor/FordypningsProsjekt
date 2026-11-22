@@ -66,9 +66,9 @@ function path_obj = PathPlanning(p,dp,ddp,rho,drho)
     end
     qr_mid = q_mid/N;
 
-    path_obj.h          = h;
-    path_obj.dh         = dh;
-    path_obj.ddh        = ddh;
+    path_obj.h          = @(s) PathCoordinating(s,h);
+    path_obj.dh         = @(s) PathCoordinating(s,dh);
+    path_obj.ddh        = @(s) PathCoordinating(s,ddh);
     path_obj.length     = N;
     path_obj.segments   = N;
     path_obj.dofs       = n;

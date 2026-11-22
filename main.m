@@ -3,6 +3,7 @@ clc;clear;
 addpath Robot_2DOF
 addpath Pathplanning
 addpath PlotsAndAnimations
+addpath GeneratePath
 %% set system paramters:
 parms.J1 = 2;
 parms.J2 = 2;
@@ -11,55 +12,34 @@ parms.L2 = 1;
 parms.m1 = 2;
 parms.m2 = 2;
 parms.g = 9.81;
+parms.rho = @(s) 1; %ds/dt
+parms.drho = @(s) 0; %drho/ds
 
 %% Generate path:
-%points:
-cx = [0    0.5   1   0.5];
-cy = [0.5     1   0.5  0];
-c = [cx;cy];
+parms.Path_obj = MakePath(parms);
 
-% velocities at points:  
-vx = [0 1 0 -1];
-vy = [1 0 -1 0];
-v = [vx;vy];
-
-%accelerations at points:
-ax = [1 0 -1 0];
-ay = [0 -1 0 1];
-a = [ax;ay];
-
-n = 2; %number of DOFs
-N = size(c,2); %number of points
-
-rho = @(s) 1; %ds/dt
-drho = @(s) 0; %drho/ds
-
-pr = zeros(n,N);
-dpr = zeros(n,N);
-ddpr = zeros(n,N); 
-for j = 1:N
-    pr(:,j) = InvKinematics(c(:,j),parms);
-    dpr(:,j) = InvVelocityKinematics(pr(:,j),v(:,j),parms);
-    ddpr(:,j) = InvAccelerationKinematics(pr(:,j),dpr(:,j),a(:,j),parms);
-end
-Path_obj = PathPlanning(pr,dpr,ddpr,rho,drho);
-parms.Path_obj = Path_obj;
-
+%% Save parameters for future use:
+save("parms.mat","parms");
+%% Make controller:
+tic
+%[K,~,~] = MakeController(parms);
+load("K.mat"); % made with order = 5 and l = 100, took ca 1h 30min to run ( a few min more, no reason to count it)
+toc
 %% simulate:
 
 dt = 0.01;
-q0 = InvKinematics(c(:,1),parms);
 x0 =    [1.2;
         2.4;
         -1.2;
         0];
-% x0 = [Path_obj.qr(0);
-%       Path_obj.dqr(0)];
+% x0 = [parms.Path_obj.qr(0);
+%       parms.Path_obj.dqr(0)];
 
 t = 0:dt:10;
+opt = odeset('RelTol',1e-7);
 disp('start sim');
 tic
-[~,y] = ode45(@(t,x) SystemDynamics(t,x,parms),t,x0);
+[~,y] = ode45(@(t,x) SystemDynamics(t,x,K,parms),t,x0,opt);
 sim_time = toc;
 disp(['end sim in ',num2str(sim_time),'s'])
 
