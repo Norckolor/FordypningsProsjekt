@@ -1,4 +1,4 @@
-function [K, Rfun, info] = prjprde_sdp(sT, n, m, order, l, fcn, opts)
+function [K, Rfun, info,C0v,Civ,Div] = prjprde_sdp(sT, n, m, order, l, fcn, opts)
 % PRJPRDE_SDP  Approximate solution of the projected periodic Riccati
 % differential equation (PrjPRDE, eq. 4.96) via the SDP (4.99)
 % (Saetre thesis, Sec. 4.6.3), using YALMIP.
@@ -37,7 +37,7 @@ function [K, Rfun, info] = prjprde_sdp(sT, n, m, order, l, fcn, opts)
 if nargin < 7, opts = struct; end
 if ~isfield(opts,'Q'),      opts.Q = @(s) eye(n); end
 if ~isfield(opts,'Gamma'),  opts.Gamma = eye(m);  end
-if ~isfield(opts,'kappa'),  opts.kappa = @(s) 0;  end
+if ~isfield(opts,'kappa'),  opts.kappa = @(s) 1;  end
 if ~isfield(opts,'solver'), opts.solver = '';     end
 if ~isfield(opts,'verbose'),opts.verbose = 0;     end
 

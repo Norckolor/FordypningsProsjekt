@@ -55,7 +55,6 @@ function dxdt = SystemDynamics(t,x,K,parms)
     e = q-q_r;
     de = dq-dq_r;
     e_trans = [e;de];
-    % kp = -100; kd = -100; 
     u_transverse = K(s)*e_trans;
     u_nom = M(q_r,parms)*ddq_r + C(q_r,dq_r,parms)*dq_r + G(q_r,parms);
     u = u_nom + u_transverse;

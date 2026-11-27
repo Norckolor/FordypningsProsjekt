@@ -1,4 +1,4 @@
-function [k,Rfun,info] = MakeController(parms)
+function [k,Rfun,info,C0v,Civ,Div] = MakeController(parms)
 
 xs = @(s) [parms.Path_obj.qr(s);
       parms.Path_obj.dqr(s)];
@@ -31,6 +31,6 @@ fnc.Aperp = @(s) As(s) - ((f_(s)*f_(s)')/(f_(s)'*A*f_(s))) *(A*As(s)+As(s)'*A);
 fnc.Bperp = @(s) eps(s) * Bs(s);
 
 
-[k,Rfun,info] = prjprde_sdp(sT,n,m,order,l,fnc);
+[k,Rfun,info,C0v,Civ,Div] = prjprde_sdp(sT,n,m,order,l,fnc);
 
 end

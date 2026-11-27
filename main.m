@@ -23,11 +23,14 @@ parms.Path_obj = MakePath(parms);
 save("parms.mat","parms");
 %% Make controller:
 tic
-[K,Rfun,Info] = MakeController(parms);
-save("Kontroller_info\K.mat","K")
-save("Kontroller_info\Rfun.mat","Rfun")
-save("Kontroller_info\info.mat","Info")
-%load("K.mat"); % made with order = 50 and l = 100, took ca 1h 30min to run ( a few min more, no reason to count it)
+% [K,Rfun,Info,C0v,Civ,Div] = MakeController(parms);
+% save("Kontroller_info\K.mat","K")
+% save("Kontroller_info\Rfun.mat","Rfun")
+% save("Kontroller_info\info.mat","Info")
+% save("Kontroller_info\C0v.mat","C0v")
+% save("Kontroller_info\Civ.mat","Civ")
+% save("Kontroller_info\Div.mat","Div")
+load("Kontroller_info\K.mat") %made with order = 50, l = 100,kappa = 1, Q = eye(n),Gamma = eye(m), took ca 1h 30min to run (a few min more, no reason to count it)
 toc
 %% simulate:
 
