@@ -80,8 +80,8 @@ for j = 1:numel(sgrid)
     RSC = [M11, M12; M12', Gi];
     RSC = (RSC + RSC')/2;          % enforce exact symmetry for YALMIP
 
-    cons = [cons, RSC >= 0, R >= 0];                 %#ok<AGROW>
-    obj  = obj + trace(E'*R*E) - F'*R*F;             %#ok<AGROW>
+    cons = [cons, RSC >= 0, R >= 0];                 
+    obj  = obj + trace(E'*R*E) - F'*R*F;             
 end
 
 % ---- Solve (YALMIP minimizes, so negate the objective) --------------

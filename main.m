@@ -4,6 +4,7 @@ addpath Robot_2DOF
 addpath Pathplanning
 addpath PlotsAndAnimations
 addpath GeneratePath
+addpath Kontroller_info
 %% set system paramters:
 parms.J1 = 2;
 parms.J2 = 2;
@@ -22,8 +23,11 @@ parms.Path_obj = MakePath(parms);
 save("parms.mat","parms");
 %% Make controller:
 tic
-%[K,~,~] = MakeController(parms);
-load("K.mat"); % made with order = 50 and l = 100, took ca 1h 30min to run ( a few min more, no reason to count it)
+[K,Rfun,Info] = MakeController(parms);
+save("Kontroller_info\K.mat","K")
+save("Kontroller_info\Rfun.mat","Rfun")
+save("Kontroller_info\info.mat","Info")
+%load("K.mat"); % made with order = 50 and l = 100, took ca 1h 30min to run ( a few min more, no reason to count it)
 toc
 %% simulate:
 
@@ -35,7 +39,7 @@ x0 =    [1.2;
 % x0 = [parms.Path_obj.qr(0);
 %       parms.Path_obj.dqr(0)];
 
-t = 0:dt:10;
+t = 0:dt:20;
 opt = odeset('RelTol',1e-7);
 disp('start sim');
 tic
